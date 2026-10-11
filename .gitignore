@@ -1,0 +1,26 @@
+# folders the script creates
+results/
+protein_output/
+ligand_output/
+temp_poses/
+
+# generated script for ChimeraX
+run_commands.py
+
+# input data and converted files
+*.pdb
+*.ent
+*.sdf
+*.mol
+*.mol2
+*.pdbqt
+
+# Vina binary (has its own license)
+vina*.exe
+
+# your own box coordinates
+context.txt
+
+# python junk
+__pycache__/
+*.pyc
