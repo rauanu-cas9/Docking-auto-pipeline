@@ -104,3 +104,24 @@ ChimeraX can't open PDBQT, so the script converts everything to plain PDB first.
 - Loading all poses at the end takes a while if you have many proteins and ligands.
 - Cavity detection is a heuristic. If the picture looks wrong, set the box yourself with `context.txt`.
 -Copyright (c) 2026 rauanu-cas9. All rights reserved.
+
+## Example:
+
+<img width="1200" height="900" alt="1HSG_lig13_pose1" src="https://github.com/user-attachments/assets/cc0efb19-e11f-405d-ba67-79024dd13d07" />
+<img width="1200" height="900" alt="1HSG_lig14_pose1" src="https://github.com/user-attachments/assets/7fdbc1eb-a171-47f6-a365-2bfc4d486f4e" />
+<img width="1200" height="900" alt="1H0A_lig14_pose1" src="https://github.com/user-attachments/assets/64683fc2-52fe-41bc-a5db-936257f4c6c2" />
+<img width="1200" height="900" alt="1H0A_lig21_pose1" src="https://github.com/user-attachments/assets/190a8e24-884b-4200-a44d-97049b825781" />
+
+protein,result_file,ligand,best_affinity_kcal/mol,box
+1HSG,PubChem_search_records_14_docked.pdbqt,PubChem_search_records_14.pdbqt,-9.392,cavity 1 (~782 A^3)
+1HSG,PubChem_search_records_13_docked.pdbqt,PubChem_search_records_13.pdbqt,-8.208,cavity 1 (~782 A^3)
+1HSG,PubChem_search_records_23_docked.pdbqt,PubChem_search_records_23.pdbqt,-8.12,cavity 1 (~782 A^3)
+1HSG,PubChem_search_records_30_docked.pdbqt,PubChem_search_records_30.pdbqt,-7.953,cavity 1 (~782 A^3)
+1HSG,PubChem_search_records_12_docked.pdbqt,PubChem_search_records_12.pdbqt,-7.895,cavity 1 (~782 A^3)
+1HSG,PubChem_search_records_21_docked.pdbqt,PubChem_search_records_21.pdbqt,-7.864,cavity 1 (~782 A^3)
+1HSG,PubChem_search_records_9_docked.pdbqt,PubChem_search_records_9.pdbqt,-7.612,cavity 1 (~782 A^3)
+1H0A,PubChem_search_records_14_docked.pdbqt,PubChem_search_records_14.pdbqt,-7.416,cavity 1 (~283 A^3)
+1HSG,PubChem_search_records_6_docked.pdbqt,PubChem_search_records_6.pdbqt,-7.371,cavity 1 (~782 A^3)
+1HSG,PubChem_search_records_25_docked.pdbqt,PubChem_search_records_25.pdbqt,-7.332,cavity 1 (~782 A^3)
+1HSG,PubChem_search_records_22_docked.pdbqt,PubChem_search_records_22.pdbqt,-7.284,cavity 1 (~782 A^3)
+1H0A,PubChem_search_records_21_docked.pdbqt,PubChem_search_records_21.pdbqt,-7.283,cavity 1 (~283 A^3)
