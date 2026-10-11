@@ -1,3 +1,4 @@
+import csv
 import glob
 import importlib
 import json
@@ -53,6 +54,9 @@ KV_VOLUME_CUTOFF = 5.0      # (A^3) ignore tiny cavities inside KVFinder
 # --- ChimeraX output ---------------------------------------------------------
 MAX_POSES = 5               # poses per ligand that get a snapshot and a frame
 USE_KVFINDER = True         # show KVFinder cavities in ChimeraX
+# Snapshot names: <protein>_<ligand>_pose<N>.png. With True, the part that is
+# the same in all ligand names is cut off: PubChem_search_records_14 -> lig14.
+SHORT_SNAPSHOT_NAMES = True
 CAVITY_COLOR = "#00b140"    # color of the cavities in ChimeraX
 
 # =============================================================================
@@ -410,6 +414,22 @@ def finalize_ligand(item, run, prot_file, table_header):
     return run["rows"][0].split()[1], box["name"]
 
 
+def write_summary(path_base, header, rows, score_index):
+    """Write <path_base>.txt (tab-separated) and <path_base>.csv.
+
+    Rows are sorted by the score column, best (most negative) first.
+    """
+    rows = sorted(rows, key=lambda r: float(r[score_index]))
+    with open(path_base + ".txt", "w", encoding="utf-8") as f:
+        f.write("\t".join(header) + "\n")
+        for row in rows:
+            f.write("\t".join(row) + "\n")
+    with open(path_base + ".csv", "w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+        writer.writerows(rows)
+
+
 README_TEXT = """WHAT IS IN THE results FOLDER
 
 <protein>/docking/
@@ -419,12 +439,14 @@ README_TEXT = """WHAT IS IN THE results FOLDER
   <ligand>_scores.txt    table of poses for this ligand: affinity and rmsd.
 
 <protein>/snapshots/
-  <ligand>_pose<N>.png   image of pose number N shown on the protein (1 is the best).
+  <protein>_<ligand>_pose<N>.png
+                         image of pose number N shown on the protein (1 is the best).
 
 <protein>/summary.txt    best score of each ligand for this protein and the box
-                         (cavity) where it was found.
+                         (cavity) where it was found, sorted from best to worst.
+                         The same table is in summary.csv.
 <protein>/box.txt        boxes used for docking: center x y z, size x y z.
-summary_all.txt          the same for all proteins in one table.
+summary_all.txt/.csv     the same for all proteins in one table, sorted by score.
 
 HOW TO READ THE TABLE
 affinity (kcal/mol): the lower (more negative) the number, the stronger the
@@ -688,9 +710,9 @@ def run_docking():
 
         def record(item, run):
             best, where = finalize_ligand(item, run, prot_file, table_header)
-            prot_summary.append(f"{item['out_filename']}\t{item['lig_file']}\t{best}\t{where}")
+            prot_summary.append((item["out_filename"], item["lig_file"], best, where))
             all_summary.append(
-                f"{prot_name}\t{item['out_filename']}\t{item['lig_file']}\t{best}\t{where}"
+                (prot_name, item["out_filename"], item["lig_file"], best, where)
             )
             print(
                 f"     Done! Result saved to {prot_name}/docking/"
@@ -808,19 +830,19 @@ def run_docking():
                 for item in pending:
                     record(item, min(item["runs"], key=lambda r: r["value"]))
 
-        with open(
-            os.path.join(results_root, prot_name, "summary.txt"),
-            "w",
-            encoding="utf-8",
-        ) as f:
-            f.write("result_file\tligand\tbest_affinity_kcal/mol\tbox\n")
-            f.write("\n".join(prot_summary) + "\n")
+        write_summary(
+            os.path.join(results_root, prot_name, "summary"),
+            ("result_file", "ligand", "best_affinity_kcal/mol", "box"),
+            prot_summary,
+            2,
+        )
 
-    with open(
-        os.path.join(results_root, "summary_all.txt"), "w", encoding="utf-8"
-    ) as f:
-        f.write("protein\tresult_file\tligand\tbest_affinity_kcal/mol\tbox\n")
-        f.write("\n".join(all_summary) + "\n")
+    write_summary(
+        os.path.join(results_root, "summary_all"),
+        ("protein", "result_file", "ligand", "best_affinity_kcal/mol", "box"),
+        all_summary,
+        3,
+    )
 
     write_readme(results_root)
 
@@ -1011,6 +1033,26 @@ if DATA:
 '''
 
 
+def short_ligand_names(names):
+    """Cut the common prefix off ligand names: a_14, a_15 -> lig14, lig15."""
+    names = list(names)
+    result = {n: n for n in names}
+    if len(names) < 2:
+        return result
+    prefix = os.path.commonprefix(names)
+    cut = max(prefix.rfind("_"), prefix.rfind("-")) + 1
+    if cut == 0:
+        return result
+    for n in names:
+        rest = n[cut:]
+        if not rest:
+            return {m: m for m in names}
+        result[n] = f"lig{rest}" if rest.isdigit() else rest
+    if len(set(result.values())) < len(names):  # names must stay unique
+        return {m: m for m in names}
+    return result
+
+
 def run_chimerax_rendering():
     print("=== [STAGE 3] Preparing ChimeraX commands ===")
 
@@ -1060,6 +1102,13 @@ def run_chimerax_rendering():
             prot_path, os.path.join(temp_folder, f"{prot_name}_protein.pdb")
         )
 
+        lig_names = [f[: -len("_docked.pdbqt")] for f in result_files]
+        snap_names = (
+            short_ligand_names(lig_names)
+            if SHORT_SNAPSHOT_NAMES
+            else {n: n for n in lig_names}
+        )
+
         poses = []
         for res_file in result_files:
             lig_name = res_file[: -len("_docked.pdbqt")]
@@ -1086,7 +1135,8 @@ def run_chimerax_rendering():
                     tf.write(pdbqt_text_to_pdb(pose_content))
 
                 shot_path = os.path.join(
-                    output_folder, f"{lig_name}_pose{pose_idx}.png"
+                    output_folder,
+                    f"{prot_name}_{snap_names[lig_name]}_pose{pose_idx}.png",
                 )
                 match = re.search(r"REMARK VINA RESULT:\s+(-?\d+\.\d+)", pose_content)
                 score = f"{match.group(1)} kcal/mol" if match else "n/a"
