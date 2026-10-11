@@ -1,6 +1,6 @@
 # Vina docking pipeline
 
-One Python script that takes a folder with proteins and ligands, docks every ligand into every protein with AutoDock Vina, and shows the results in ChimeraX. I wrote it because preparing files and running Vina by hand for each pair got old fast.
+One Python script that takes a folder with proteins and ligands, docks every ligand into every protein with AutoDock Vina, and shows the results in ChimeraX. I wrote it because preparing files and running Vina by hand for each pair got old fast
 
 Everything lives in `docking_pipeline.py`. Drop it into a folder with your input files and run it:
 
@@ -67,21 +67,22 @@ All of them are at the top of the script with comments. The ones you will touch 
 | `AUTO_BOX_SIZE` | box size around each cavity |
 | `COMPARE_LIGANDS` | see above |
 | `MAX_POSES` | poses per ligand to render |
+| `SHORT_SNAPSHOT_NAMES` | shorten ligand names in snapshot file names |
 
 ## Output
 
 ```
 results/
   README.txt          short explanation of the files
-  summary_all.txt     best score of every ligand for every protein
+  summary_all.txt     best score of every ligand for every protein (also .csv)
   <protein>/
-    summary.txt
+    summary.txt       same for one protein (also .csv)
     box.txt           boxes that were used
     docking/          <ligand>_docked.pdbqt, <ligand>_scores.txt
-    snapshots/        <ligand>_pose<N>.png
+    snapshots/        <protein>_<ligand>_pose<N>.png, e.g. 1HSG_lig14_pose1.png
 ```
 
-The scores are in kcal/mol, lower (more negative) is better. Vina scores are rough estimates. Compare ligands with each other, don't trust the absolute number
+The summary tables are sorted by score, best first. The scores are in kcal/mol, lower (more negative) is better. Vina scores are rough estimates. Compare ligands with each other, don't trust the absolute number
 
 ## ChimeraX viewer
 
@@ -93,13 +94,13 @@ Commands:
 - `dframe 7` shows frame 7 of the current protein
 - `dnext`, `dprev` go through the frames
 
-The Log panel also prints clickable links for the same things, plus the ligand name and score of the current frame.
+The Log panel also prints clickable links for the same things, plus the ligand name and score of the current frame
 
-ChimeraX cant open PDBQT, so the script converts everything to plain PDB first. The converted files are in `temp_poses/`
+ChimeraX can't open PDBQT, so the script converts everything to plain PDB first. The converted files are in `temp_poses/`
 
 ## Good to know
 
 - Every run deletes the old `.pdbqt` files in `protein_output/` and `ligand_output/`.
 - Loading all poses at the end takes a while if you have many proteins and ligands.
 - Cavity detection is a heuristic. If the picture looks wrong, set the box yourself with `context.txt`.
-- Copyright (c) 2026 rauanu-cas9. All rights reserved.
+-Copyright (c) 2026 rauanu-cas9. All rights reserved.
