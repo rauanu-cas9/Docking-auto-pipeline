@@ -103,9 +103,11 @@ ChimeraX can't open PDBQT, so the script converts everything to plain PDB first.
 - Every run deletes the old `.pdbqt` files in `protein_output/` and `ligand_output/`.
 - Loading all poses at the end takes a while if you have many proteins and ligands.
 - Cavity detection is a heuristic. If the picture looks wrong, set the box yourself with `context.txt`.
+
 -Copyright (c) 2026 rauanu-cas9. All rights reserved.
 
 ## Example:
+
 
 <img width="1200" height="900" alt="1HSG_lig13_pose1" src="https://github.com/user-attachments/assets/cc0efb19-e11f-405d-ba67-79024dd13d07" />
 <img width="1200" height="900" alt="1HSG_lig14_pose1" src="https://github.com/user-attachments/assets/7fdbc1eb-a171-47f6-a365-2bfc4d486f4e" />
